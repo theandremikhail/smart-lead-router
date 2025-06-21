@@ -1,0 +1,147 @@
+{
+  "name": "Email",
+  "nodes": [
+    {
+      "parameters": {
+        "downloadAttachments": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b54218eb-8413-4cfb-9b1f-b895ff1e7da4",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "p0QoZmXvlWQTXc2k",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json[\"textPlain\"];  // or use html for \"textHtml\"\nconst nameMatch = body.match(/Name: (.+)/);\nconst emailMatch = body.match(/Email: (.+)/);\n\nreturn [\n  {\n    json: {\n      name: nameMatch?.[1] || \"\",\n      email: emailMatch?.[1] || \"\",\n      source: \"Email Form\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "6c0b590d-aaf1-4389-b1c0-d2c1f631ab52",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.body.email }}",
+        "additionalFields": {
+          "firstName": "={{ $json.body.name }}",
+          "phoneNumber": "={{ $json.body.phone }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "a3996755-361a-4f32-aa2c-065c245f4fff",
+      "name": "HubSpot",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "69PpTmn2oY1BJUcq",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#all-leads-generator",
+          "mode": "name"
+        },
+        "text": "=🆕 *New Lead Captured!* \n*Name:* {{ $json.properties.hs_full_name_or_email.value }}  \n*Email:* {{ $json.properties.email.value }} \n*Message:* {{ $('Webhook').item.json.body.message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        620,
+        0
+      ],
+      "id": "9af1355d-f766-44f5-980a-df20a8e875cd",
+      "name": "Slack",
+      "webhookId": "e8e4b42f-2231-4d83-be52-dd619b10d5d9",
+      "credentials": {
+        "slackApi": {
+          "id": "bB30kTTpjpz1R4d5",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "177dce88-9ef9-44a6-8f09-fdcdea46187c",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HubSpot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "223f1d9f-5d61-4431-ab25-8539d8a958f6",
+  "meta": {
+    "instanceId": "b158203b3049af7a215dca9fea67b64eb698fd32ee8b44c192f87137fc2c1ae6"
+  },
+  "id": "qqwWW58aZI220K9E",
+  "tags": []
+}

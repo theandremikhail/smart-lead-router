@@ -1,0 +1,110 @@
+{
+  "name": "Webhook_Webform",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-form",
+        "responseMode": "=onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e1c9603d-6eec-4fda-a751-2839d396ba93",
+      "name": "Webhook",
+      "webhookId": "e22a1814-77cf-4a4e-9a71-d54e570df7d7"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.body.email }}",
+        "additionalFields": {
+          "firstName": "={{ $json.body.name }}",
+          "phoneNumber": "={{ $json.body.phone }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "d5a91976-5cf0-4fbd-9ca0-61ac6419707b",
+      "name": "HubSpot",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "69PpTmn2oY1BJUcq",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#all-leads-generator",
+          "mode": "name"
+        },
+        "text": "=🆕 *New Lead Captured!* \n*Name:* {{ $json.properties.hs_full_name_or_email.value }}  \n*Email:* {{ $json.properties.email.value }} \n*Message:* {{ $('Webhook').item.json.body.message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        440,
+        0
+      ],
+      "id": "7ca0cdea-b400-4bbf-9884-228b1ccd5523",
+      "name": "Slack",
+      "webhookId": "e8e4b42f-2231-4d83-be52-dd619b10d5d9",
+      "credentials": {
+        "slackApi": {
+          "id": "bB30kTTpjpz1R4d5",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HubSpot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0edb6693-d170-4384-b6b6-bb7a9ada60a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b158203b3049af7a215dca9fea67b64eb698fd32ee8b44c192f87137fc2c1ae6"
+  },
+  "id": "2YuHz5IWhk3kAkp1",
+  "tags": []
+}
